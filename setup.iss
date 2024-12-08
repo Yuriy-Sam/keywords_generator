@@ -1,10 +1,12 @@
 [Setup]
+AppId={{APP_ID_PLACEHOLDER}}
 AppName=KeywordCraze
 AppVersion=1.1
 DefaultDirName={pf}\KeywordCraze
 DefaultGroupName=KeywordCraze
 OutputDir=.\output
 OutputBaseFilename=KeywordCraze
+DisableDirPage=yes
 
 [Files]
 Source: "dist/KeywordCraze.exe"; DestDir: "{app}"; Flags: ignoreversion
@@ -26,3 +28,6 @@ Filename: "{app}\KeywordCraze.exe"; Description: "Run KeywordCraze"; Flags: nowa
 
 [CustomMessages]
 en=KeywordCraze - Setup Complete!; After installation is complete, you can launch KeywordCraze from your desktop or Start Menu.
+
+[UninstallDelete]
+Type: files; Name: "{app}\KeywordCraze.exe"; Flags: ignoreversion

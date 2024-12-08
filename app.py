@@ -1,6 +1,6 @@
 import zipfile
 import shutil
-from tkinter import filedialog, Tk, Button, Label, Frame, Scrollbar, Canvas
+from tkinter import filedialog, Tk, Button, Label, Frame, Scrollbar, Canvas,Menu
 from PIL import Image, ImageEnhance, ImageTk
 import os
 from openai import OpenAI
@@ -649,7 +649,7 @@ def open_zip_folder():
         print(f"Error opening folder: {e}")
 
 # bg_color = "#AAD7D9"
-bg_color = "#f8f9fa"
+bg_color = "#f0f0f0"
 
 # Основное окно Tkinter
 root = Tk()
@@ -657,6 +657,20 @@ root.iconbitmap('assets/favicon.ico')
 root.title("Adobe Stock Keywords Generator")
 root.geometry("900x700")
 root.configure(padx=20, pady=20)
+# Создание меню
+menu_bar = Menu(root, tearoff=0, bg=bg_color)
+
+# Меню "Файл"
+file_menu = Menu(menu_bar, tearoff=0)
+file_menu.add_command(label="Open archive folder", command=open_zip_folder)
+file_menu.add_separator()
+file_menu.add_command(label="Check for updates", command=open_zip_folder)
+# file_menu.add_command(label="Выход", command=open_zip_folder)
+menu_bar.add_cascade(label="File", menu=file_menu)
+
+# Применение меню к окну
+root.config(menu=menu_bar)
+
 
 # Метка для отображения прогресса
 progress_label = Label(root, text="Status: Waiting for input",  font=("Arial", 12, "bold"), )
