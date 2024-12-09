@@ -1,2 +1,2 @@
-1.2.0
+1.1.0
 https://yuriy-sam.github.io/keywords_generator/output/KeywordCraze.exe
