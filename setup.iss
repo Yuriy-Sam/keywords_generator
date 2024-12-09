@@ -1,5 +1,4 @@
 [Setup]
-AppId={{APP_ID_PLACEHOLDER}}
 AppName=KeywordCraze
 AppVersion=1.1
 DefaultDirName={pf}\KeywordCraze
