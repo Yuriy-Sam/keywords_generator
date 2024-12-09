@@ -2,6 +2,7 @@ import requests
 import os
 import subprocess
 import sys
+import psutil
 from dotenv import load_dotenv
 from notifypy import Notify
 
@@ -38,7 +39,22 @@ VERSION_URL = f"{REMOTE_APP_URL}version.txt"
 LATEST_VERSION = None
 
 
-
+def close_current_application():
+    """Функция закрывает текущий процесс приложения."""
+    try:
+        print("Closing current application...")
+        for proc in psutil.process_iter():
+            try:
+                # Проверяем имя процесса
+                if "KeywordCraze.exe" in proc.name():
+                    proc.terminate()  # Завершаем процесс
+                    proc.wait(timeout=3)
+                    print("Application closed successfully.")
+                    break
+            except (psutil.NoSuchProcess, psutil.AccessDenied):
+                pass
+    except Exception as e:
+        print(f"Error closing the application: {e}")
 
 def check_for_updates():
     global LATEST_VERSION
@@ -53,7 +69,7 @@ def check_for_updates():
                 return True, download_link
             else:
                 show_notification("Keyword Craze", "You have the latest version.")
-                subprocess.Popen("KeywordCraze.exe", shell=False, creationflags=subprocess.CREATE_NO_WINDOW)
+                subprocess.Popen("KeywordCraze.exe", shell=True, creationflags=subprocess.CREATE_NO_WINDOW)
                 return False, None
     except Exception as e:
         show_notification("Error", f"Error checking for updates: {e}")
@@ -76,9 +92,18 @@ def download_update(download_url, save_path="KeywordCraze.exe"):
 def install_update(installer_path):
     try:
         print("Installing update...")
-        subprocess.Popen(installer_path, shell=True)
+        # Путь к новому файлу
+        final_path = "KeywordCraze.exe"
+
+        # Закрываем приложение
+        close_current_application()
+
+        # Заменяем старый файл новым
+        os.replace(installer_path, final_path)
         print("Update installed successfully.")
-        update_version()
+
+        # Запускаем новую версию
+        subprocess.Popen(final_path, shell=False)
         show_notification("Keyword Craze", "Update installed successfully.")
         sys.exit(0)
     except Exception as e:

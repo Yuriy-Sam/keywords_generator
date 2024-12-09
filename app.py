@@ -1,6 +1,6 @@
 import zipfile
 import shutil
-from tkinter import filedialog, Tk, Button, Label, Frame, Scrollbar, Canvas,Menu
+from tkinter import filedialog, Tk, Button, Label, Frame, Scrollbar, Canvas, Menu, BooleanVar, Checkbutton
 from PIL import Image, ImageEnhance, ImageTk
 import os
 from openai import OpenAI
@@ -61,19 +61,18 @@ def create_folder(folder_path):
     if not os.path.exists(folder_path):
         os.makedirs(folder_path)
 
-# Создаем необходимые папки
-create_folder(base_dir)
-create_folder(resources_folder)
-create_folder(zip_folder)
-
 # Инициализация клиента OpenAI
 openai_client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 # Удаляем папку resources, если она существует
 if os.path.exists(resources_folder):
     shutil.rmtree(resources_folder)  # Удаляет папку и всё её содержимое
+if os.path.exists(zip_folder):
+    shutil.rmtree(zip_folder)  # Удаляет папку и всё её содержимое
 
-# Создаём папку resources заново
-os.makedirs(resources_folder)
+# Создаем необходимые папки
+create_folder(base_dir)
+create_folder(resources_folder)
+create_folder(zip_folder)
 
 # Функция для остановки всех потоков
 def stop_threads():
@@ -171,29 +170,46 @@ def display_images(images=None):
             img.thumbnail((200, 200))  # Устанавливаем размер миниатюры
             img_tk = ImageTk.PhotoImage(img)
 
-            # Создаем Frame для изображения
-            img_frame = Frame(canvas_frame)
-            img_frame.grid(row=row, column=col, columnspan=1, rowspan=1, padx=5, pady=5, sticky="nsew")
+            
+            if metadata_checkbox_var.get() == True:
+                # Создаем Frame для изображения
+                img_frame = Frame(canvas_frame)
+                img_frame.grid(row=row, column=col, columnspan=1, rowspan=1, padx=5, pady=5, sticky="nsew")
 
-            # Создаем метку для миниатюры
-            label = Label(img_frame, image=img_tk)
-            label.image = img_tk  # Сохраняем ссылку на изображение
-            label.pack(side="top", pady=5)
+                # Создаем метку для миниатюры
+                label = Label(img_frame, image=img_tk)
+                label.image = img_tk  # Сохраняем ссылку на изображение
+                label.pack(side="top", pady=5)
 
-            # Размещаем информацию справа от изображения
-            info_frame = Frame(canvas_frame)
-            info_frame.grid(row=row, column=1, padx=5, pady=5, sticky="nsew")
+                # Размещаем информацию справа от изображения
+                info_frame = Frame(canvas_frame)
+                info_frame.grid(row=row, column=1, padx=5, pady=5, sticky="nsew")
 
-            # Заголовок
-            title_label = Label(info_frame, text=title, anchor="w", font=("Arial", 15, "bold"), wraplength=600, justify="left")
-            title_label.pack(side="top", anchor="w")
+                # Заголовок
+                title_label = Label(info_frame, text=title, anchor="w", font=("Arial", 15, "bold"), wraplength=600, justify="left")
+                title_label.pack(side="top", anchor="w")
 
-            # Ключевые слова
-            keywords_label = Label(info_frame, text="\nKeywords: \n" + keywords, anchor="w" , font=("Arial", 12), wraplength=600, justify="left")
-            keywords_label.pack(side="top", anchor="w")
+                # Ключевые слова
+                keywords_label = Label(info_frame, text="\nKeywords: \n" + keywords, anchor="w" , font=("Arial", 12), wraplength=600, justify="left")
+                keywords_label.pack(side="top", anchor="w")
+                # Перемещаемся на следующий ряд
+                row += 1
+            else:
+                # Создаем Frame для изображения и кнопки
+                img_frame = Frame(canvas_frame)
+                img_frame.grid(row=row, column=col, columnspan=1, rowspan=1, padx=5, pady=5, sticky="nsew")
 
-            # Перемещаемся на следующий ряд
-            row += 1
+                # Создаем метку для миниатюры
+                label = Label(img_frame, image=img_tk)
+                label.image = img_tk  # Сохраняем ссылку на изображение, чтобы оно не исчезло
+                label.pack(side="top", pady=5)
+                # Перемещаемся на следующий столбец
+                col += 1
+
+                # Если столбцы достигли максимума (например, 4), то переходим на новую строку
+                if col > 2:
+                    col = 0
+                    row += 1
         
     # for i in range(col + 1):
     #     canvas_frame.grid_columnconfigure(i, weight=1, uniform="equal")  # Применяем для всех столбцов
@@ -522,23 +538,30 @@ def process_single_image(filepath):
     global pending_tasks
     global processed_images 
     global processed_images_with_metadata
+    print(f"Upscale checkbox: {upscale_checkbox_var.get() == True}, Metadata checkbox: {metadata_checkbox_var.get() == True}")
+    if upscale_checkbox_var.get() == True:
+        # Here, we use threading for each step to make sure they don't block the UI
+        resize_thread = threading.Thread(target=lambda: resize_to_fit(filepath, filepath), daemon=True)
+        resize_thread.start()
+        resize_thread.join()  # Wait for resize to finish
+        
+    if metadata_checkbox_var.get() == True:
+        progress_label.config(text=f"Status: Generating metadata...")
+        title, keywords = analyze_images_with_gpt(filepath)  # Simulate external API processing
+    if upscale_checkbox_var.get() == True:
+        adjust_image_thread = threading.Thread(target=lambda: adjust_image_size(filepath), daemon=True)
+        adjust_image_thread.start()
+        adjust_image_thread.join()  # Wait for resize to finish
+    if metadata_checkbox_var.get() == True:
+        update_image_metadata(filepath, title, keywords)  # Update image metadata
 
-    # Here, we use threading for each step to make sure they don't block the UI
-    resize_thread = threading.Thread(target=lambda: resize_to_fit(filepath, filepath), daemon=True)
-    resize_thread.start()
-    resize_thread.join()  # Wait for resize to finish
-    
-    
-    progress_label.config(text=f"Status: Generating metadata...")
-    title, keywords = analyze_images_with_gpt(filepath)  # Simulate external API processing
-    adjust_image_thread = threading.Thread(target=lambda: adjust_image_size(filepath), daemon=True)
-    adjust_image_thread.start()
-    adjust_image_thread.join()  # Wait for resize to finish
-    update_image_metadata(filepath, title, keywords)  # Update image metadata
-
+    print(f"Status: Finished processing {filepath}")
     # Add to processed images list after processing
     processed_images.append(filepath)
-    processed_images_with_metadata.append({"image_path": filepath, 'title': title, 'keywords': ", ".join(keywords)})
+    if metadata_checkbox_var.get() == True:
+        processed_images_with_metadata.append({"image_path": filepath, 'title': title, 'keywords': ", ".join(keywords)})
+    else:
+        processed_images_with_metadata.append({"image_path": filepath, 'title': "", 'keywords': ""})
     print(f"Pending tasks: {pending_tasks}")
 
     print(f"Processed image: {filepath}")
@@ -585,9 +608,9 @@ def create_zip_after_processing():
     progress_label.config(text="Status: ZIP archive created")
     create_excel_file()
     # Show the download button after archive is created
-    zip_folder_button.pack(side="left", padx=5, pady=5)
-    download_zip_button.pack(side="left", padx=5, pady=5)
-    download_excel_button.pack(side="left", padx=5, pady=5)
+    zip_folder_button.pack(side="left", padx=5)
+    download_zip_button.pack(side="left", padx=5)
+    download_excel_button.pack(side="left", padx=5)
     display_images(processed_images_with_metadata)
 
     show_notification("Keyword Craze", f"ZIP archive created successfully! Download it now.")
@@ -658,7 +681,7 @@ def check_for_updates():
             creationflags=subprocess.CREATE_NO_WINDOW  # Не открывать консоль
         )
         print("Installer started successfully. Closing current application...")
-        sys.exit(0) 
+        # sys.exit(0) 
     except Exception as e:
         print(f"Ошибка при запуске обновления: {e}")
 
@@ -668,7 +691,7 @@ bg_color = "#f0f0f0"
 # Основное окно Tkinter
 root = Tk()
 root.iconbitmap('assets/favicon.ico')
-root.title("Adobe Stock Keywords Generator")
+root.title("KeywordCraze")
 root.geometry("900x700")
 root.configure(padx=20, pady=20)
 # Создание меню
@@ -694,8 +717,10 @@ main_button_frame = Frame(root, )
 main_button_frame.pack(pady=10, side="top")  
 button_frame = Frame(main_button_frame, )
 button_frame.pack(pady=10, side="top")  
+checkbox_frame = Frame(main_button_frame, )
+checkbox_frame.pack(pady=10, side="top")  
 second_button_frame = Frame(main_button_frame, )
-second_button_frame.pack(pady=20, side="top")  
+second_button_frame.pack(pady=10, side="top")  
 # Кнопка для загрузки изображений
 upload_button = Button(button_frame, text="Upload Images", command=load_images, font=("Arial", 12, "bold"), bg="#212529", fg="white")
 upload_button.pack(side="left", padx=5)  # Кнопка загрузки изображений
@@ -718,6 +743,34 @@ download_zip_button.pack_forget()
 # Кнопка для скачивания excel
 download_excel_button = Button(second_button_frame, text="Download Excel", command=download_excel, font=("Arial", 12, "bold"), bg="#212529", fg="white")
 download_excel_button.pack_forget()
+
+
+# Переменные для хранения состояния чекбоксов
+metadata_checkbox_var = BooleanVar(value=True)  # Переменная для первого чекбокса
+upscale_checkbox_var = BooleanVar(value=True)  # Переменная для второго чекбокса
+
+# Создаем первый чекбокс
+metadata_checkbox = Checkbutton(
+    checkbox_frame, 
+    text="Generate metadata", 
+    variable=metadata_checkbox_var,  # Привязка к переменной
+    onvalue=True, 
+    offvalue=False,
+    font=("Arial", 12), 
+)
+metadata_checkbox.pack(side="left", pady=5)
+
+# Создаем второй чекбокс
+upscale_checkbox = Checkbutton(
+    checkbox_frame, 
+    text="Upscale images", 
+    variable=upscale_checkbox_var,  # Привязка к переменной
+    onvalue=True, 
+    offvalue=False, 
+    font=("Arial", 12), 
+)
+upscale_checkbox.pack(side="left",pady=5)
+
 
 # Создаем основной фрейм
 scroll_frame = Frame(root)
