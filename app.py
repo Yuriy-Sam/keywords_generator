@@ -648,6 +648,20 @@ def open_zip_folder():
     except Exception as e:
         print(f"Error opening folder: {e}")
 
+def check_for_updates():
+    print("Checking for updates...")
+    updater_path = "update_installer.exe"  # Путь к установщику
+    try:
+        subprocess.Popen(
+            updater_path,
+            shell=False,  # Лучше False, если напрямую запускается исполняемый файл
+            creationflags=subprocess.CREATE_NO_WINDOW  # Не открывать консоль
+        )
+        print("Installer started successfully. Closing current application...")
+        sys.exit(0) 
+    except Exception as e:
+        print(f"Ошибка при запуске обновления: {e}")
+
 # bg_color = "#AAD7D9"
 bg_color = "#f0f0f0"
 
@@ -664,7 +678,7 @@ menu_bar = Menu(root, tearoff=0, bg=bg_color)
 file_menu = Menu(menu_bar, tearoff=0)
 file_menu.add_command(label="Open archive folder", command=open_zip_folder)
 file_menu.add_separator()
-file_menu.add_command(label="Check for updates", command=open_zip_folder)
+file_menu.add_command(label="Check for updates", command=check_for_updates)
 # file_menu.add_command(label="Выход", command=open_zip_folder)
 menu_bar.add_cascade(label="File", menu=file_menu)
 

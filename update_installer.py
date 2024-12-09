@@ -20,26 +20,38 @@ def show_notification(title, message, duration=10):
 def get_version():
     with open("version.txt", "r") as file:
         version = file.read().strip().split("\n")[0]
+    print(f"Current version: {version}")
     return version
+def update_version():
+    download_link = None
+    with open("version.txt", "r") as file:
+        download_link = file.read().strip().split("\n")[1]
+    with open("version.txt", "w") as file:
+        file.write(f"{LATEST_VERSION}\n{download_link}")
+    print(f"Version updated successfully to {LATEST_VERSION}")
 
 # Получаем путь к AppData текущего пользователя
 REMOTE_APP_URL = os.getenv("REMOTE_APP_URL")
 CURRENT_VERSION = get_version()
 VERSION_URL = f"{REMOTE_APP_URL}version.txt"
+LATEST_VERSION = None
 
 
 
 
 def check_for_updates():
+    global LATEST_VERSION
     try:
         response = requests.get(VERSION_URL)
         if response.status_code == 200:
             latest_version, download_link = response.text.strip().split("\n")
             if latest_version > CURRENT_VERSION:
                 print(f"New version available: {latest_version}")
+                LATEST_VERSION = latest_version
                 return True, download_link
             else:
                 show_notification("Keyword Craze", "You have the latest version.")
+                subprocess.Popen("KeywordCraze.exe", shell=False, creationflags=subprocess.CREATE_NO_WINDOW)
                 return False, None
     except Exception as e:
         show_notification("Error", f"Error checking for updates: {e}")
@@ -62,8 +74,9 @@ def download_update(download_url, save_path="KeywordCraze.exe"):
 def install_update(installer_path):
     try:
         print("Installing update...")
-        subprocess.Popen(installer_path, shell=False)
+        subprocess.Popen(installer_path, shell=True)
         print("Update installed successfully.")
+        update_version()
         show_notification("Keyword Craze", "Update installed successfully.")
         sys.exit(0)
     except Exception as e:

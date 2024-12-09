@@ -12,6 +12,8 @@ DisableDirPage=yes
 Source: "dist/KeywordCraze.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: ".env"; DestDir: "{app}"; Flags: ignoreversion
 Source: "assets\*.*"; DestDir: "{app}\assets"; Flags: ignoreversion recursesubdirs
+Source: "update_installer.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "version.txt"; DestDir: "{app}"; Flags: ignoreversion
 
 [Tasks]
 Name: desktopicon; Description: "Create a &desktop icon"; GroupDescription: "Additional icons:";
@@ -30,4 +32,4 @@ Filename: "{app}\KeywordCraze.exe"; Description: "Run KeywordCraze"; Flags: nowa
 en=KeywordCraze - Setup Complete!; After installation is complete, you can launch KeywordCraze from your desktop or Start Menu.
 
 [UninstallDelete]
-Type: files; Name: "{app}\KeywordCraze.exe"; Flags: ignoreversion
+Type: files; Name: "{app}\KeywordCraze.exe";
