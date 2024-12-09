@@ -11,7 +11,7 @@ DisableDirPage=yes
 Source: "dist/KeywordCraze.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: ".env"; DestDir: "{app}"; Flags: ignoreversion
 Source: "assets\*.*"; DestDir: "{app}\assets"; Flags: ignoreversion recursesubdirs
-Source: "update_installer.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "update_installer.exe"; DestDir: "{app}";
 Source: "version.txt"; DestDir: "{app}"; Flags: ignoreversion
 
 [Tasks]

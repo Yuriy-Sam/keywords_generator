@@ -69,7 +69,7 @@ def check_for_updates():
                 return True, download_link
             else:
                 show_notification("Keyword Craze", "You have the latest version.")
-                subprocess.Popen("KeywordCraze.exe", shell=True, creationflags=subprocess.CREATE_NO_WINDOW)
+                subprocess.Popen("KeywordCraze.exe", shell=True)
                 return False, None
     except Exception as e:
         show_notification("Error", f"Error checking for updates: {e}")
