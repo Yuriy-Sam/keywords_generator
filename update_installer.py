@@ -25,6 +25,7 @@ def get_version():
 def update_version():
     download_link = None
     with open("version.txt", "r") as file:
+        print(f"File content: {file.read()}, latest version: {LATEST_VERSION}")
         download_link = file.read().strip().split("\n")[1]
     with open("version.txt", "w") as file:
         file.write(f"{LATEST_VERSION}\n{download_link}")
@@ -44,6 +45,7 @@ def check_for_updates():
     try:
         response = requests.get(VERSION_URL)
         if response.status_code == 200:
+            print(f"response: {response.text}")
             latest_version, download_link = response.text.strip().split("\n")
             if latest_version > CURRENT_VERSION:
                 print(f"New version available: {latest_version}")
