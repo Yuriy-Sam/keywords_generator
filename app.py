@@ -681,7 +681,7 @@ def check_for_updates():
             creationflags=subprocess.CREATE_NO_WINDOW  # Не открывать консоль
         )
         print("Installer started successfully. Closing current application...")
-        sys.exit(0) 
+        # sys.exit(0) 
     except Exception as e:
         print(f"Ошибка при запуске обновления: {e}")
 

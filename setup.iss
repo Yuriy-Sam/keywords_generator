@@ -8,10 +8,11 @@ OutputBaseFilename=KeywordCraze
 DisableDirPage=yes
 
 [Files]
-Source: "dist/KeywordCraze.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "dist/KeywordCraze.exe"; DestDir: "{app}"; Flags: ignoreversion uninsneveruninstall
+Source: "dist/update_installer.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "dist/update_helper.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: ".env"; DestDir: "{app}"; Flags: ignoreversion
 Source: "assets\*.*"; DestDir: "{app}\assets"; Flags: ignoreversion recursesubdirs
-Source: "update_installer.exe"; DestDir: "{app}";
 Source: "version.txt"; DestDir: "{app}"; Flags: ignoreversion
 
 [Tasks]

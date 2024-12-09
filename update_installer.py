@@ -34,10 +34,12 @@ def update_version():
 
 # Получаем путь к AppData текущего пользователя
 REMOTE_APP_URL = os.getenv("REMOTE_APP_URL")
+APP_DIR = os.path.dirname(os.path.abspath(__file__))
 CURRENT_VERSION = get_version()
 VERSION_URL = f"{REMOTE_APP_URL}version.txt"
 LATEST_VERSION = None
 
+print(f"App dir: {APP_DIR}")
 
 def close_current_application():
     """Функция закрывает текущий процесс приложения."""
@@ -69,16 +71,17 @@ def check_for_updates():
                 return True, download_link
             else:
                 show_notification("Keyword Craze", "You have the latest version.")
-                subprocess.Popen("KeywordCraze.exe", shell=True)
                 return False, None
     except Exception as e:
         show_notification("Error", f"Error checking for updates: {e}")
     return False, None
 
-def download_update(download_url, save_path="KeywordCraze.exe"):
+def download_update(download_url, save_path=f"{APP_DIR}"):
     try:
         print("Downloading update...")
+        print(f"Save path: {save_path}")
         response = requests.get(download_url, stream=True)
+        print(f"Downloading response: {response}")
         with open(save_path, "wb") as file:
             for chunk in response.iter_content(chunk_size=1024):
                 if chunk:
@@ -92,19 +95,15 @@ def download_update(download_url, save_path="KeywordCraze.exe"):
 def install_update(installer_path):
     try:
         print("Installing update...")
-        # Путь к новому файлу
-        final_path = "KeywordCraze.exe"
 
         # Закрываем приложение
         close_current_application()
 
-        # Заменяем старый файл новым
-        os.replace(installer_path, final_path)
-        print("Update installed successfully.")
+        # Запускаем вспомогательный скрипт для замены файла
+        helper_path = os.path.join(APP_DIR, "update_helper.exe")
+        subprocess.Popen([helper_path, installer_path, "KeywordCraze.exe"], shell=False)
 
-        # Запускаем новую версию
-        subprocess.Popen(final_path, shell=False)
-        show_notification("Keyword Craze", "Update installed successfully.")
+        print("Update installation started. Exiting updater...")
         sys.exit(0)
     except Exception as e:
         show_notification("Error", f"Error installing update: {e}")
